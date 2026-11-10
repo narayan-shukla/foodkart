@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { addFood, listFood, removeFood } from '../controllers/foodController.js';
+import { addFood, listFood, removeFood, updateFood } from '../controllers/foodController.js';
 import authMiddleware from '../middleware/auth.js';
 
 const foodRouter = express.Router();
@@ -11,4 +11,5 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilt
 foodRouter.post('/add', authMiddleware, upload.single('image'), addFood);
 foodRouter.get('/list', listFood);
 foodRouter.post('/remove', authMiddleware, removeFood);
+foodRouter.post('/update', authMiddleware, upload.single('image'), updateFood);
 export default foodRouter;

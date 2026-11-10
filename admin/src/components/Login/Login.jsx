@@ -20,6 +20,7 @@ const Login = ({ url }) => {
   };
   const onLogin = async (event) => {
     event.preventDefault();
+    try {
     const response = await axios.post(url + "/api/user/login", data);
     if (response.data.success) {
       if (response.data.role === "admin") {
@@ -28,17 +29,18 @@ const Login = ({ url }) => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("admin", true);
         toast.success("Login Successfully");
-        navigate("/add")
+        navigate("/dashboard")
       }else{
         toast.error("You are not an admin");
       }
     } else {
       toast.error(response.data.message);
     }
+    } catch (error) { toast.error(error.response?.data?.message || "Unable to sign in"); }
   };
   useEffect(()=>{
     if(admin && token){
-       navigate("/add");
+       navigate("/dashboard");
     }
   },[])
   return (

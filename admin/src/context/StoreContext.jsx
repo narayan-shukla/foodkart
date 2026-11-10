@@ -1,4 +1,3 @@
-import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 
 export const StoreContext = createContext(null);
@@ -6,6 +5,7 @@ export const StoreContext = createContext(null);
 const StoreContextProvider = (props) => {
   const [token, setToken] = useState("");
   const [admin, setAdmin] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
 
   useEffect(() => {
@@ -14,8 +14,9 @@ const StoreContextProvider = (props) => {
         setToken(localStorage.getItem("token"));
       }
       if (localStorage.getItem("admin")) {
-        setAdmin(localStorage.getItem("admin"));
+        setAdmin(localStorage.getItem("admin") === "true");
       }
+      setAuthReady(true);
     }
     loadData();
   }, []);
@@ -25,6 +26,7 @@ const StoreContextProvider = (props) => {
     setToken,
     admin,
     setAdmin,
+    authReady,
   };
   return (
     <StoreContext.Provider value={contextValue}>

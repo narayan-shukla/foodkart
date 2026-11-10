@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "server": "nodemon server.js",
-    "test": "node --test"
+    "test": "for file in tests/*.test.js; do node \"$file\" || exit 1; done"
   },
   "author": "",
   "license": "ISC",

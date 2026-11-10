@@ -68,12 +68,15 @@ const stripeWebhook = async (req, res) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       if (session.payment_status === 'paid' && session.metadata?.orderId) {
-        const order = await orderModel.findOneAndUpdate(
-          { _id: session.metadata.orderId, userId: session.metadata.userId, stripeSessionId: session.id, payment: false },
-          { $set: { payment: true, status: 'Food Processing' } },
-          { new: true },
-        );
-        if (order) await userModel.findByIdAndUpdate(order.userId, { cartData: {} });
+        const orderInfo = await orderModel.findOne({ _id: session.metadata.orderId, userId: session.metadata.userId, stripeSessionId: session.id });
+        if (orderInfo && session.amount_total === Math.round(orderInfo.amount * 100)) {
+          const order = await orderModel.findOneAndUpdate(
+            { _id: orderInfo.id, payment: false },
+            { $set: { payment: true, status: 'Food Processing' } },
+            { new: true },
+          );
+          if (order) await userModel.findByIdAndUpdate(order.userId, { cartData: {} });
+        }
       }
     }
     res.json({ received: true });
@@ -91,12 +94,30 @@ const listOrders = async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin access required' });
   res.json({ success: true, data: await orderModel.find({}).sort({ date: -1 }) });
 };
+const adminStats = async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin access required' });
+  try {
+    const [foodCount, orderCount, paidOrderCount, pendingCount, revenueRows] = await Promise.all([
+      foodModel.countDocuments(),
+      orderModel.countDocuments(),
+      orderModel.countDocuments({ payment: true }),
+      orderModel.countDocuments({ payment: true, status: { $in: ['Food Processing', 'Out for delivery'] } }),
+      orderModel.aggregate([{ $match: { payment: true } }, { $group: { _id: null, revenue: { $sum: '$amount' } } }]),
+    ]);
+    res.json({ success: true, data: { foodCount, orderCount, paidOrderCount, pendingCount, revenue: revenueRows[0]?.revenue || 0 } });
+  } catch (error) {
+    console.error('Unable to calculate admin statistics:', error.message);
+    res.status(500).json({ success: false, message: 'Unable to load dashboard statistics' });
+  }
+};
 const updateStatus = async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin access required' });
   const allowed = ['Food Processing', 'Out for delivery', 'Delivered', 'Cancelled'];
   if (!allowed.includes(req.body.status)) return res.status(400).json({ success: false, message: 'Invalid order status' });
+  const currentOrder = await orderModel.findById(req.body.orderId);
+  if (!currentOrder) return res.status(404).json({ success: false, message: 'Order not found' });
+  if (!currentOrder.payment) return res.status(409).json({ success: false, message: 'Unpaid orders cannot be processed' });
   const order = await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status }, { new: true });
-  if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
   res.json({ success: true, message: 'Status updated' });
 };
-export { placeOrder, verifyOrder, stripeWebhook, userOrders, listOrders, updateStatus };
+export { placeOrder, verifyOrder, stripeWebhook, userOrders, listOrders, updateStatus, adminStats };

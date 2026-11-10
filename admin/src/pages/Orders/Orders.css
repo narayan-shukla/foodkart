@@ -39,4 +39,4 @@
     .order-item img{
         width: 40px;
     }
-}
+}.order-item{flex-wrap:wrap}.order-payment-pending{font-size:13px;color:#956100;background:#fff5d6;padding:7px 10px;border-radius:999px}@media(max-width:700px){.order-item{align-items:flex-start}.order-item select{max-width:100%}}

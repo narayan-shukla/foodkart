@@ -5,7 +5,7 @@ FoodKart is a MERN food ordering project with separate customer and restaurant a
 ## Applications
 
 - `frontend/`: React customer storefront, cart, checkout, and order history.
-- `admin/`: React menu and order management interface.
+- `admin/`: React menu CRUD, paid order management, and database-backed overview.
 - `backend/`: Express API, MongoDB models, JWT authentication, and Stripe Checkout integration.
 
 ## Requirements
@@ -46,12 +46,16 @@ The API defaults to `http://localhost:4000`, customer Vite to port 5173, and adm
 
 `backend/.env.example` documents MongoDB, JWT, Stripe, allowed client origins, and frontend URL configuration. Use a unique random `JWT_SECRET`, a private MongoDB database, and Stripe keys from your own account. Never commit `.env` files. New admin accounts are not self-provisioned; assign the `admin` role directly in your own database after registration.
 
+## Tests
+
+Run `npm test` from `backend/` and `frontend/` for pure pricing and cart calculation tests. Run `npm run build` from `frontend/` and `admin/` to create production bundles.
+
 ## API overview
 
 - `POST /api/user/register`, `POST /api/user/login`
-- `GET /api/food/list`, `POST /api/food/add`, `POST /api/food/remove`
+- `GET /api/food/list`, `POST /api/food/add`, `/api/food/update`, `/api/food/remove`
 - `POST /api/cart/add`, `/remove`, `/get`
-- `POST /api/order/place`, `/verify`, `/userorders`; `GET /api/order/list`; `POST /api/order/status`
+- `POST /api/order/place`, `/verify`, `/userorders`; `GET /api/order/list`, `/api/order/stats`; `POST /api/order/status`; Stripe webhook `POST /api/order/webhook`
 
 Authenticated endpoints accept a JWT in the `token` header. Admin operations require an account with the `admin` database role.
 

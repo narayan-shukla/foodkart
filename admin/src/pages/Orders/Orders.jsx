@@ -13,14 +13,16 @@ const Orders = ({ url }) => {
   const navigate = useNavigate();
   const { token, admin } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchAllOrder = async () => {
-    const response = await axios.get(url + "/api/order/list", {
-      headers: { token },
-    });
-    if (response.data.success) {
-      setOrders(response.data.data);
-    }
+    setLoading(true);
+    try {
+      const response = await axios.get(url + "/api/order/list", { headers: { token } });
+      if (response.data.success) setOrders(response.data.data);
+      else toast.error(response.data.message || "Unable to load orders");
+    } catch (error) { toast.error(error.response?.data?.message || "Unable to load orders"); }
+    finally { setLoading(false); }
   };
 
   const statusHandler = async (event, orderId) => {
@@ -49,10 +51,12 @@ const Orders = ({ url }) => {
 
   return (
     <div className="order add">
-      <h3>Order Page</h3>
+      <h3>Orders</h3>
+      {loading && <p role="status">Loading orders…</p>}
+      {!loading && orders.length === 0 && <p>No orders to show yet.</p>}
       <div className="order-list">
-        {orders.map((order, index) => (
-          <div key={index} className="order-item">
+        {!loading && orders.map((order) => (
+          <div key={order._id} className="order-item">
             <img src={assets.parcel_icon} alt="" />
             <div>
               <p className="order-item-food">
@@ -83,14 +87,12 @@ const Orders = ({ url }) => {
             </div>
             <p>Items: {order.items.length}</p>
             <p>${order.amount}</p>
-            <select
-              onChange={(event) => statusHandler(event, order._id)}
-              value={order.status}
-            >
+            {order.payment ? <select aria-label={`Status for order ${order._id}`} onChange={(event) => statusHandler(event, order._id)} value={order.status}>
               <option value="Food Processing">Food Processing</option>
               <option value="Out for delivery">Out for delivery</option>
               <option value="Delivered">Delivered</option>
-            </select>
+              <option value="Cancelled">Cancelled</option>
+            </select> : <span className="order-payment-pending">Payment pending</span>}
           </div>
         ))}
       </div>
