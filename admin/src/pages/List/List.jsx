@@ -5,8 +5,6 @@ import { StoreContext } from '../../context/StoreContext';
 import { useNavigate } from 'react-router-dom';
 import './List.css';
 
-const emptyItem = { id: '', name: '', description: '', price: '', category: 'Salad' };
-const categories = ['Salad', 'Rolls', 'Deserts', 'Sandwich', 'Cake', 'Pure Veg', 'Pasta', 'Noodles'];
 
 const List = ({ url }) => {
   const navigate = useNavigate();
@@ -16,6 +14,7 @@ const List = ({ url }) => {
   const [editing, setEditing] = useState(null);
   const [image, setImage] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -30,7 +29,10 @@ const List = ({ url }) => {
   useEffect(() => {
     if (!token) { navigate('/'); return; }
     fetchList();
-  }, [token, navigate, fetchList]);
+    axios.get(`${url}/api/food/categories`).then((response) => {
+      if (response.data.success) setCategories(response.data.data);
+    }).catch(() => toast.error('Unable to load categories'));
+  }, [token, navigate, fetchList, url]);
 
   const removeFood = async (foodId) => {
     try {
@@ -75,7 +77,7 @@ const List = ({ url }) => {
           <div className="edit-dialog-head"><h2 id="edit-title">Edit menu item</h2><button type="button" onClick={() => setEditing(null)} aria-label="Close">×</button></div>
           <label>Name<input required maxLength="100" value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.target.value })} /></label>
           <label>Description<textarea required maxLength="500" value={editing.description} onChange={(event) => setEditing({ ...editing, description: event.target.value })} /></label>
-          <div className="edit-fields"><label>Price<input required type="number" min="0.01" step="0.01" value={editing.price} onChange={(event) => setEditing({ ...editing, price: event.target.value })} /></label><label>Category<select value={editing.category} onChange={(event) => setEditing({ ...editing, category: event.target.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label></div>
+          <div className="edit-fields"><label>Price<input required type="number" min="0.01" step="0.01" value={editing.price} onChange={(event) => setEditing({ ...editing, price: event.target.value })} /></label><label>Category<select value={editing.category} onChange={(event) => setEditing({ ...editing, category: event.target.value })}>{categories.map((category) => <option key={category._id} value={category.name}>{category.name}</option>)}</select></label></div>
           <label>Replace image (optional)<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setImage(event.target.files?.[0] || null)} /></label>
           <div className="edit-actions"><button type="button" onClick={() => setEditing(null)}>Cancel</button><button className="primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div>
         </form>

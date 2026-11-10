@@ -36,4 +36,5 @@
     .sidebar-option img{
         width: 17px;
     }
-}
+}.sidebar-overview-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#fff0e9;color:#e85d2a;font-size:10px;font-weight:800;flex:0 0 auto}.sidebar-options{padding-right:10px}.sidebar-option{min-height:44px}.sidebar-option.active{color:#a93e1d}@media(max-width:900px){.app-content{flex-direction:column}.sidebar{width:100%;min-height:unset;border-left:0;border-right:0;border-bottom:1px solid #ddd}.sidebar-options{padding:8px 12px;flex-direction:row;overflow-x:auto;gap:8px}.sidebar-option{flex:0 0 auto;border-right:1px solid #a9a9a9;border-radius:8px;padding:8px 10px}.sidebar-option p{display:block;font-size:13px;white-space:nowrap}}
+@media(max-width:480px){.sidebar-options{gap:6px;padding:7px}.sidebar-option{padding:7px 9px;gap:6px}.sidebar-option img{width:18px}.sidebar-option p{font-size:12px}}

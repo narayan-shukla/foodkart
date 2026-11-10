@@ -57,4 +57,4 @@
   .footer-copyright{
     text-align: center;
   }
-}
+}.footer-wordmark{font-size:30px;font-weight:800;letter-spacing:-1px;color:white}.footer-wordmark span{color:#ff8b62}.footer-content-center li,.footer-content-right li{cursor:pointer}.footer-content a:hover{color:white;text-decoration:underline}.footer-content-left p{max-width:460px;line-height:1.7}.footer{padding-bottom:24px}@media(max-width:750px){.footer{padding:48px 7vw 20px;margin-top:60px}.footer-content{gap:24px}}

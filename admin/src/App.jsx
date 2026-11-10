@@ -1,4 +1,3 @@
-import React from "react";
 import Navbar from "./components/Navbar/Navbar";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { Route, Routes } from "react-router-dom";
@@ -10,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import ProtectedAdmin from "./components/ProtectedAdmin/ProtectedAdmin";
+import Categories from "./pages/Categories/Categories";
 
 const App = () => {
   const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -26,6 +26,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard url={url}/>} />
             <Route path="/add" element={<Add url={url}/>} />
             <Route path="/list" element={<List url={url}/>} />
+            <Route path="/categories" element={<Categories url={url}/>} />
             <Route path="/orders" element={<Orders url={url}/>} />
           </Route>
         </Routes>

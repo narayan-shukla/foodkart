@@ -4,13 +4,13 @@ FoodKart is a MERN food ordering project with separate customer and restaurant a
 
 ## Applications
 
-- `frontend/`: React customer storefront, cart, checkout, and order history.
-- `admin/`: React menu CRUD, paid order management, and database-backed overview.
+- `frontend/`: React customer storefront with database-backed category discovery, search, cart, checkout, and order history.
+- `admin/`: React menu and category CRUD, paid order management, and database-backed overview.
 - `backend/`: Express API, MongoDB models, JWT authentication, and Stripe Checkout integration.
 
 ## Requirements
 
-Node.js 18+, npm, and MongoDB. Stripe is required only for hosted card checkout. Product images are stored locally in `backend/uploads` by default; configure persistent storage before using this mode in production.
+Node.js 18+, npm, and MongoDB. Stripe is required only for hosted card checkout. Product images use the local `backend/uploads` directory by default. Set `UPLOAD_DIR` to a persistent mounted directory in production.
 
 ## Setup
 
@@ -48,12 +48,12 @@ The API defaults to `http://localhost:4000`, customer Vite to port 5173, and adm
 
 ## Tests
 
-Run `npm test` from `backend/` and `frontend/` for pure pricing and cart calculation tests. Run `npm run build` from `frontend/` and `admin/` to create production bundles.
+Run `npm test` from `backend/` for category validation and controller behavior, JWT authorization over HTTP, and trusted order pricing. Run `npm test` from `frontend/` for cart subtotal tests. Run `npm run lint` and `npm run build` from both `frontend/` and `admin/` to check source quality and create production bundles. Category controller tests use mocked models; database-backed API workflows require a configured MongoDB instance.
 
 ## API overview
 
 - `POST /api/user/register`, `POST /api/user/login`
-- `GET /api/food/list`, `POST /api/food/add`, `/api/food/update`, `/api/food/remove`
+- `GET /api/food/list`, `/api/food/categories`; `POST /api/food/add`, `/api/food/update`, `/api/food/remove`; admin category writes use `POST /api/food/categories`, `PATCH /api/food/categories/:id`, and `DELETE /api/food/categories/:id`
 - `POST /api/cart/add`, `/remove`, `/get`
 - `POST /api/order/place`, `/verify`, `/userorders`; `GET /api/order/list`, `/api/order/stats`; `POST /api/order/status`; Stripe webhook `POST /api/order/webhook`
 
@@ -61,7 +61,7 @@ Authenticated endpoints accept a JWT in the `token` header. Admin operations req
 
 ## Deployment
 
-Deploy the two Vite apps as separate static sites and the Express app as a Node service. Configure environment variables independently on each service, use MongoDB Atlas or another private MongoDB deployment, and provide persistent or managed object storage for uploaded images. Configure Stripe webhooks and payment confirmation before accepting live payments. No service URL is supplied by this repository.
+Deploy the customer and admin Vite apps as separate static sites and the Express app as a Node service. Configure environment variables independently on each service, use MongoDB Atlas or another private MongoDB deployment, and provide persistent or managed object storage for uploaded images by setting `UPLOAD_DIR` to the mounted storage path. Configure Stripe webhooks and payment confirmation before accepting live payments. `UPLOAD_DIR` must point to persistent storage if product images should survive service restarts. No provider-specific manifests or service URLs are included; select the provider and set each frontend's `VITE_API_URL` to the deployed API URL.
 
 ## Screenshots
 

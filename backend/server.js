@@ -1,9 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { connectDB } from './config/db.js';
+import { uploadsDir } from './config/uploads.js';
 import foodRouter from './routes/foodRoute.js';
 import userRouter from './routes/userRoute.js';
 import cartRouter from './routes/cartRoute.js';
@@ -14,7 +13,6 @@ import { stripeWebhook } from './controllers/orderController.js';
 const app = express();
 const port = process.env.PORT || 4000;
 const allowedOrigins = (process.env.CLIENT_URLS || 'http://localhost:5173,http://localhost:5174').split(',').map((origin) => origin.trim());
-const uploadsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
 app.use(cors({ origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)), credentials: true }));
 app.post('/api/order/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 app.use(express.json({ limit: '1mb' }));

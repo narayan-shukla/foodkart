@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { calculateCartSubtotal } from "../utils/cart.js";
 
@@ -11,8 +11,9 @@ const StoreContextProvider = (props) => {
     catch { return {}; }
   });
   const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(() => localStorage.getItem("token") || "");
   const [food_list, setFoodList] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
@@ -50,43 +51,49 @@ const StoreContextProvider = (props) => {
     }
   };
 
-  const getTotalCartAmount = () => calculateCartSubtotal(cartItems, food_list);
+  const getTotalCartAmount = useCallback(() => calculateCartSubtotal(cartItems, food_list), [cartItems, food_list]);
 
-  const fetchFoodList = async () => {
-    const response = await axios.get(url + "/api/food/list");
-    if (response.data.success) {
-      setFoodList(response.data.data);
-    } else {
-      alert("Error! Products are not fetching..");
-    }
-  };
+  const fetchFoodList = useCallback(async () => {
+    try {
+      const response = await axios.get(url + "/api/food/list");
+      if (response.data.success) setFoodList(response.data.data);
+      else toast.error(response.data.message || "Menu could not be loaded");
+    } catch { toast.error("Menu could not be loaded"); }
+  }, [url]);
 
-  const loadCardData = async (token) => {
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await axios.get(url + "/api/food/categories");
+      if (response.data.success) setCategories(response.data.data.map((category) => category.name));
+    } catch { toast.error("Menu categories could not be loaded"); }
+  }, [url]);
+
+  const loadCardData = useCallback(async (authToken) => {
     const response = await axios.post(
       url + "/api/cart/get",
       {},
-      { headers: { token } }
+      { headers: { token: authToken } }
     );
     if (response.data.success) setCartItems(response.data.cartData || {});
-  };
+  }, [url]);
 
   useEffect(() => {
     localStorage.setItem("foodkart-cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   useEffect(() => {
+    let active = true;
     async function loadData() {
-      await fetchFoodList();
-      if (localStorage.getItem("token")) {
-        setToken(localStorage.getItem("token"));
-        await loadCardData(localStorage.getItem("token"));
-      }
+      await Promise.all([fetchFoodList(), fetchCategories()]);
+      if (active && token) await loadCardData(token);
     }
     loadData();
-  }, []);
+    return () => { active = false; };
+  }, [fetchFoodList, fetchCategories, loadCardData, token]);
 
   const contextValue = {
     food_list,
+    categories,
     cartItems,
     setCartItems,
     addToCart,

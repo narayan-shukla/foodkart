@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import "./Login.css";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -42,7 +42,7 @@ const Login = ({ url }) => {
     if(admin && token){
        navigate("/dashboard");
     }
-  },[])
+  },[admin, token, navigate])
   return (
     <div className="login-popup">
       <form onSubmit={onLogin} className="login-popup-container">

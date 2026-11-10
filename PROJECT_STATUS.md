@@ -1,29 +1,35 @@
 # FoodKart Project Status
 
 ## Completed
-- Removed obfuscated executable code from both Vite configuration files and restored standard Vite configs.
-- Removed upstream hosted API URLs from the apps and documented independent environment configuration.
-- Added JWT expiry and server-side role checks, registration validation, CORS allowlisting, startup database checks, and endpoint rate limits.
-- Checkout recalculates prices from MongoDB and verifies Stripe sessions server-side. A raw-body Stripe webhook verifies signatures and settles matching paid orders once.
-- Added food create, edit, delete, upload validation, admin live overview metrics, order management, and unpaid-order status protection.
-- Added customer food search, category filtering, persisted cart state, safe subtotal calculation, and empty/loading/error feedback for cart and orders.
+- Removed obfuscated executable code from Vite configs and upstream hosted API dependencies.
+- Added JWT expiry and server-side role checks, registration validation, CORS allowlisting, startup DB checks, and endpoint rate limits.
+- Checkout calculates trusted MongoDB prices; Stripe sessions are verified server-side and signed webhooks settle paid orders idempotently.
+- Added food create/edit/delete, safe uploads, live admin metrics, order management, and unpaid-order status protection.
+- Added database-backed category CRUD. Category rename updates matching menu items; deletion is blocked while items still use that category.
+- Wired dynamic categories into customer discovery and admin add/edit forms.
+- Improved customer mobile navigation and hero layout, replaced stale Tomato branding, and made admin navigation/forms/lists adapt to narrow screens.
+- Added customer cart/order empty and error states and local cart persistence.
+- Reviewed customer and admin layouts at the available browser sizes, corrected mobile customer navigation/hero and narrow admin layouts, and ran both app linters cleanly.
+- Added HTTP auth integration coverage plus category validation/controller tests; backend API tests, customer tests, and both production builds pass.
 
 ## Remaining
-- Admin category CRUD beyond the current fixed categories; automated admin API and UI flow coverage.
-- Broader responsive/accessibility review and customer authentication edge cases.
-- Distributed rate limiting for multi-instance production deployments.
-- Stripe support for delayed payment methods and live webhook end-to-end verification.
-- Persistent image storage configuration for production deployment.
+- Verify category CRUD with a live MongoDB and full admin login session.
+- Complete browser visual checks at tablet/desktop customer and mobile admin sizes; current environment allowed a mobile customer and desktop admin review but not a full viewport matrix.
+- Expand checkout, order status, admin API, and browser-level workflow tests. Current backend tests cover auth over HTTP, category controller behavior with mocked models, and price calculation; they do not exercise a live database or browser workflows.
+- Use distributed rate limiting for multi-instance production.
+- Support delayed Stripe payment methods and verify live webhook delivery.
+- Configure and verify persistent image storage for the target deployment.
 
 ## Tests and builds
-- Backend `npm test`: 2 pricing tests pass.
-- Frontend `npm test`: 2 cart tests pass.
-- Backend JavaScript syntax checks pass.
+- Backend tests pass (8 subtests): auth HTTP integration, category validation/controller behavior, and trusted order pricing.
+- Frontend tests pass (2 subtests): cart subtotal and malformed/loading cart cases.
+- Backend JavaScript syntax checks pass; frontend and admin ESLint checks pass.
 - Customer and admin Vite production builds pass.
-- Database connectivity, admin API flows, and Stripe flows were not exercised because private credentials are not configured.
+- Database-backed category CRUD, Stripe flows, and order workflows were not exercised because private service credentials are not configured.
 
 ## Latest milestone
-- Added admin menu editing and real database statistics; improved order status safety and customer cart/order states.
+- Added full category CRUD APIs and admin UI, connected categories to customer discovery and menu editing, made upload storage configurable, fixed responsive/branding issues, and added API/controller test coverage.
 
 ## Deployment blockers
-- Configure private MongoDB, JWT secret, Stripe secret and webhook secret, frontend origin allowlist, and persistent image storage in deployment settings.
+- Configure private MongoDB, JWT secret, Stripe secret and webhook secret, frontend origin allowlist, and a persistent `UPLOAD_DIR` in the deployment environment.
+- The repository documents independent static frontend/admin and Node API deployment, but has no provider-specific deployment manifests because no target provider or service URLs are configured.

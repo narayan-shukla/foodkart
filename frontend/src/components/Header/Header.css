@@ -49,4 +49,4 @@
     .header-contents button{
         padding: 2vw 4vw;
     }
-}
+}@media(max-width:750px){.header{height:clamp(180px,58vw,300px);background-size:cover;background-position:center}.header-contents{left:6vw;right:5vw;bottom:8%;max-width:82%;gap:12px}.header-contents h2{font-size:clamp(24px,7vw,40px);line-height:1.05}.header-contents button{padding:10px 18px;font-size:14px}}

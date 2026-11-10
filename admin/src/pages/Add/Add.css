@@ -40,4 +40,5 @@
     .add-product-name, .add-product-description{
         width: max(40%,220px);
     }
-}
+}@media(max-width:900px){.add{width:auto;margin:26px 18px}.add-product-name,.add-product-description{width:min(100%,520px)}.add-category-price{flex-wrap:wrap;gap:18px}}
+@media(max-width:480px){.add{margin:20px 14px;font-size:15px}.add-category-price{gap:12px}.add-category-price select,.add-category-price input{max-width:100%;width:100%;min-height:42px}.add-btn{max-width:none;min-height:44px}}

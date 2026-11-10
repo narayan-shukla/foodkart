@@ -1,48 +1,24 @@
-import React from "react";
-import "./Footer.css";
-import { assets } from "../../assets/frontend_assets/assets";
+import { Link } from 'react-router-dom';
+import './Footer.css';
 
-const Footer = () => {
-  return (
-    <div className="footer" id="footer">
-      <div className="footer-content">
-        <div className="footer-content-left">
-          <img src={assets.logo} alt="" />
-          <p>
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cumque
-            nostrum iure suscipit maiores non harum incidunt unde magnam
-            molestias ipsum qui vel aut natus aspernatur ipsa dignissimos,
-            numquam assumenda deserunt.
-          </p>
-          <div className="footer-social-icons">
-            <img src={assets.facebook_icon} alt="" />
-            <img src={assets.twitter_icon} alt="" />
-            <img src={assets.linkedin_icon} alt="" />
-          </div>
-        </div>
-        <div className="footer-content-center">
-          <h2>Company</h2>
-          <ul>
-            <li>Home</li>
-            <li>About us</li>
-            <li>Delivery</li>
-            <li>Privacy Policy</li>
-          </ul>
-        </div>
-        <div className="footer-content-right">
-          <h2>Get in touch</h2>
-          <ul>
-            <li>+92-308-4900522</li>
-            <li>contact@tomato.com</li>
-          </ul>
-        </div>
+const Footer = () => (
+  <footer className="footer" id="footer">
+    <div className="footer-content">
+      <div className="footer-content-left">
+        <Link to="/" className="footer-wordmark"><span>Food</span>Kart</Link>
+        <p>Discover local favourites, order with ease, and follow your FoodKart orders from checkout to delivery.</p>
       </div>
-      <hr />
-      <p className="footer-copyright">
-        Copyright 2024 @ Tomato.com - All Right Reserved.
-      </p>
+      <div className="footer-content-center">
+        <h2>Explore</h2>
+        <ul><li><Link to="/">Home</Link></li><li><a href="/#explore-menu">Browse menu</a></li><li><Link to="/cart">Your cart</Link></li></ul>
+      </div>
+      <div className="footer-content-right">
+        <h2>Your FoodKart</h2>
+        <ul><li><Link to="/myorders">Order history</Link></li><li><a href="/#explore-menu">Find a dish</a></li></ul>
+      </div>
     </div>
-  );
-};
-
+    <hr />
+    <p className="footer-copyright">© {new Date().getFullYear()} FoodKart</p>
+  </footer>
+);
 export default Footer;

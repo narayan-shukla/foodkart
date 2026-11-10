@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import { useCallback, useContext, useEffect } from 'react'
 import './Verify.css'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StoreContext } from '../../context/StoreContext';
@@ -11,7 +11,7 @@ const Verify = () => {
     const {url, token} =useContext(StoreContext);
     const navigate= useNavigate();
 
-    const verifyPayment=async()=>{
+    const verifyPayment=useCallback(async()=>{
         const authToken = token || localStorage.getItem("token");
         if (!authToken || !sessionId) { navigate("/cart"); return; }
         const response= await axios.post(url+"/api/order/verify",{sessionId},{headers:{token: authToken}});
@@ -22,10 +22,10 @@ const Verify = () => {
             toast.error(response.data.message || "Payment could not be verified");
             navigate("/cart");
         }
-    }
+    }, [token, sessionId, url, navigate]);
     useEffect(()=>{
         verifyPayment().catch(() => { toast.error("Payment verification failed"); navigate("/cart"); });
-    },[sessionId])
+    },[verifyPayment, navigate])
   return (
     <div className='verify'>
         <div className="spinner"></div>

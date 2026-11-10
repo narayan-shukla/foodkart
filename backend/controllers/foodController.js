@@ -1,34 +1,31 @@
 import foodModel from "../models/foodModel.js";
+import categoryModel from "../models/categoryModel.js";
 import fs from "fs";
 
 // add food items
 
 const addFood = async (req, res) => {
   if (!req.user || req.user.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
-  if (!req.file) return res.status(400).json({ success: false, message: "A PNG, JPEG, or WebP image is required" });
   const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
   const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
   const category = typeof req.body.category === 'string' ? req.body.category.trim() : '';
   const price = Number(req.body.price);
-  if (!name || !description || !category || !Number.isFinite(price) || price <= 0) return res.status(400).json({ success: false, message: "Valid item details are required" });
-  const image_filename = req.file.filename;
-  const food = new foodModel({
-    name,
-    description,
-    price,
-    category,
-    image: image_filename,
-  });
+  if (!req.file) return res.status(400).json({ success: false, message: "A PNG, JPEG, or WebP image is required" });
+  if (!name || !description || !category || !Number.isFinite(price) || price <= 0) {
+    fs.unlink(`uploads/${req.file.filename}`, () => {});
+    return res.status(400).json({ success: false, message: "Valid item details are required" });
+  }
   try {
-    if (req.user.role === "admin") {
-      await food.save();
-      res.json({ success: true, message: "Food Added" });
-    } else {
-      res.json({ success: false, message: "You are not admin" });
+    if (!(await categoryModel.exists({ key: category.toLowerCase() }))) {
+      fs.unlink(`uploads/${req.file.filename}`, () => {});
+      return res.status(400).json({ success: false, message: "Select an existing category" });
     }
+    const food = await foodModel.create({ name, description, price, category, image: req.file.filename });
+    return res.status(201).json({ success: true, message: "Food Added", data: food });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    fs.unlink(`uploads/${req.file.filename}`, () => {});
+    console.error('Unable to add food:', error.message);
+    return res.status(500).json({ success: false, message: "Unable to add food item" });
   }
 };
 
@@ -41,6 +38,7 @@ const updateFood = async (req, res) => {
   const price = Number(req.body.price);
   if (!name || !description || !category || !Number.isFinite(price) || price <= 0) return res.status(400).json({ success: false, message: 'Valid item details are required' });
   try {
+    if (!(await categoryModel.exists({ key: category.toLowerCase() }))) return res.status(400).json({ success: false, message: 'Select an existing category' });
     const food = await foodModel.findById(req.body.id);
     if (!food) return res.status(404).json({ success: false, message: 'Food item not found' });
     const oldImage = food.image;

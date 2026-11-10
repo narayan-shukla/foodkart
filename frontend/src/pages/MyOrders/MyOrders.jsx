@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import "./MyOrders.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
@@ -10,7 +10,7 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true); setError("");
     try {
     const response = await axios.post(
@@ -22,13 +22,13 @@ const MyOrders = () => {
     else setError(response.data.message || "Could not load orders");
     } catch { setError("Could not load orders. Please try again."); }
     finally { setLoading(false); }
-  };
+  }, [url, token]);
 
   useEffect(() => {
     if (token) {
       fetchOrders();
     }
-  }, [token]);
+  }, [token, fetchOrders]);
   return (
     <div className="my-orders">
       <h2>Orders</h2>

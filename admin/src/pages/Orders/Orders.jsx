@@ -1,6 +1,5 @@
-import React from "react";
 import "./Orders.css";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
@@ -15,7 +14,7 @@ const Orders = ({ url }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAllOrder = async () => {
+  const fetchAllOrder = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(url + "/api/order/list", { headers: { token } });
@@ -23,7 +22,7 @@ const Orders = ({ url }) => {
       else toast.error(response.data.message || "Unable to load orders");
     } catch (error) { toast.error(error.response?.data?.message || "Unable to load orders"); }
     finally { setLoading(false); }
-  };
+  }, [url, token]);
 
   const statusHandler = async (event, orderId) => {
     const response = await axios.post(
@@ -47,7 +46,7 @@ const Orders = ({ url }) => {
       navigate("/");
     }
     fetchAllOrder();
-  }, []);
+  }, [admin, fetchAllOrder, navigate, token]);
 
   return (
     <div className="order add">

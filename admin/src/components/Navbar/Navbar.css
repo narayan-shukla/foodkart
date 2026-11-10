@@ -1,15 +1,1 @@
-.navbar{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 4%;
-}
-.navbar .logo{
-    width: max(10%,80px);
-}
-.navbar .profile{
-    width: 40px;
-}
-.login-conditon{
-    font-size: 20px;
-}
+.navbar{display:flex;justify-content:space-between;align-items:center;padding:12px 4%;gap:16px;border-bottom:1px solid #eee;background:#fff}.admin-wordmark{display:flex;align-items:baseline;gap:5px;font-size:25px;font-weight:800;letter-spacing:-1px;white-space:nowrap}.admin-wordmark span{color:#e85d2a}.admin-wordmark small{margin-left:7px;color:#777;font-size:10px;letter-spacing:.1em}.login-conditon{font-size:15px;border:1px solid #ddd;border-radius:8px;background:white;padding:8px 14px;cursor:pointer}@media(max-width:480px){.navbar{padding:10px 14px}.admin-wordmark{font-size:22px}.admin-wordmark small{font-size:9px}}

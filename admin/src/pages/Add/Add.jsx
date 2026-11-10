@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./Add.css";
 import { assets } from "../../assets/assets";
 import axios from "axios";
@@ -6,18 +6,31 @@ import { toast } from "react-toastify";
 import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import { useEffect } from "react";
+import { useCallback } from "react";
 import {useNavigate } from "react-router-dom";
 
 const Add = ({url}) => {
   const navigate=useNavigate();
   const {token,admin} = useContext(StoreContext);
   const [image, setImage] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "Salad",
+    category: "",
   });
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await axios.get(`${url}/api/food/categories`);
+      if (response.data.success) {
+        setCategories(response.data.data);
+        setData((current) => ({ ...current, category: current.category || response.data.data[0]?.name || "" }));
+      }
+    } catch { toast.error("Unable to load categories"); }
+  }, [url]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -27,6 +40,7 @@ const Add = ({url}) => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
+    setSubmitting(true);
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
@@ -34,26 +48,19 @@ const Add = ({url}) => {
     formData.append("category", data.category);
     formData.append("image", image);
 
-    const response = await axios.post(`${url}/api/food/add`, formData,{headers:{token}});
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        price: "",
-        category: "Salad",
-      });
+    try {
+      const response = await axios.post(`${url}/api/food/add`, formData,{headers:{token}});
+      if (!response.data.success) throw new Error(response.data.message || "Unable to add menu item");
+      setData({ name: "", description: "", price: "", category: categories[0]?.name || "" });
       setImage(false);
       toast.success(response.data.message);
-    } else {
-      toast.error(response.data.message);
-    }
+    } catch (error) { toast.error(error.response?.data?.message || error.message || "Unable to add menu item"); }
+    finally { setSubmitting(false); }
   };
   useEffect(()=>{
-    if(!admin && !token){
-      toast.error("Please Login First");
-       navigate("/");
-    }
-  },[])
+    if(!admin && !token){ toast.error("Please Login First"); navigate("/"); }
+    fetchCategories();
+  },[admin, token, navigate, fetchCategories])
   return (
     <div className="add">
       <form onSubmit={onSubmitHandler} className="flex-col">
@@ -98,21 +105,10 @@ const Add = ({url}) => {
         <div className="add-category-price">
           <div className="add-category flex-col">
             <p>Product category</p>
-            <select
-              name="category"
-              required
-              onChange={onChangeHandler}
-              value={data.category}
-            >
-              <option value="Salad">Salad</option>
-              <option value="Rolls">Rolls</option>
-              <option value="Deserts">Deserts</option>
-              <option value="Sandwich">Sandwich</option>
-              <option value="Cake">Cake</option>
-              <option value="Pure Veg">Pure Veg</option>
-              <option value="Pasta">Pasta</option>
-              <option value="Noodles">Noodles</option>
+            <select name="category" required onChange={onChangeHandler} value={data.category} disabled={!categories.length}>
+              {categories.map((category) => <option key={category._id} value={category.name}>{category.name}</option>)}
             </select>
+            {!categories.length && <small>Add a category before creating menu items.</small>}
           </div>
           <div className="add-price flex-col">
             <p>Product price</p>
@@ -126,8 +122,8 @@ const Add = ({url}) => {
             />
           </div>
         </div>
-        <button type="submit" className="add-btn">
-          ADD
+        <button type="submit" className="add-btn" disabled={submitting || !categories.length}>
+          {submitting ? "SAVING…" : "ADD ITEM"}
         </button>
       </form>
     </div>
