@@ -40,7 +40,7 @@ cp .env.example .env
 npm run dev
 ```
 
-The API defaults to `http://localhost:4000`, customer Vite to port 5173, and admin Vite to port 5173 (use `npm run dev -- --port 5174` when running both). Set `VITE_API_URL` in each frontend env file for another backend address. Set `CLIENT_URLS` to comma-separated allowed browser origins and `FRONTEND_URL` to your deployed customer app URL.
+The API defaults to `http://localhost:4000`, customer Vite to port 5173, and admin Vite to port 5173 (use `npm run dev -- --port 5174` when running both). Configure Stripe to send `checkout.session.completed` events to `POST /api/order/webhook`; signature verification uses `STRIPE_WEBHOOK_SECRET`. Order totals use trusted MongoDB product prices, `DELIVERY_CHARGE`, and the configured `CURRENCY`. Set `VITE_API_URL` in each frontend env file for another backend address. Set `CLIENT_URLS` to comma-separated allowed browser origins and `FRONTEND_URL` to your deployed customer app URL.
 
 ## Environment
 

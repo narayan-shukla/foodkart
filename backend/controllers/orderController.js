@@ -2,6 +2,7 @@ import orderModel from '../models/orderModel.js';
 import userModel from '../models/userModel.js';
 import foodModel from '../models/foodModel.js';
 import Stripe from 'stripe';
+import { buildTrustedOrderItems, calculateOrderTotal } from '../utils/orderPricing.js';
 
 const getStripe = () => process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const placeOrder = async (req, res) => {
@@ -9,19 +10,11 @@ const placeOrder = async (req, res) => {
     const stripe = getStripe();
     if (!stripe) return res.status(503).json({ success: false, message: 'Online payments are not configured' });
     const requested = req.body.items;
-    if (!Array.isArray(requested) || requested.length === 0 || requested.length > 50) return res.status(400).json({ success: false, message: 'Cart is empty or invalid' });
+    if (!Array.isArray(requested)) return res.status(400).json({ success: false, message: 'Cart is empty or invalid' });
     const ids = [...new Set(requested.map((item) => String(item.id || item._id || '')))];
     const foods = await foodModel.find({ _id: { $in: ids } });
-    const byId = new Map(foods.map((food) => [food.id, food]));
-    const items = requested.map((item) => {
-      const food = byId.get(String(item.id || item._id));
-      const quantity = Number(item.quantity);
-      if (!food || !Number.isInteger(quantity) || quantity < 1 || quantity > 25) throw new Error('Cart contains an invalid item or quantity');
-      return { _id: food.id, name: food.name, price: food.price, quantity };
-    });
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const delivery = subtotal === 0 ? 0 : 2;
-    const amount = subtotal + delivery;
+    const items = buildTrustedOrderItems(requested, foods);
+    const { delivery, amount } = calculateOrderTotal(items, Number(process.env.DELIVERY_CHARGE || 2));
     const address = req.body.address;
     if (!address || typeof address !== 'object' || !address.street || !address.city || !(address.zip || address.zipcode)) return res.status(400).json({ success: false, message: 'Complete delivery address required' });
     const order = await orderModel.create({ userId: req.user.id, items, amount, address, payment: false, status: 'Payment pending' });
@@ -48,15 +41,48 @@ const verifyOrder = async (req, res) => {
     const order = await orderModel.findOne({ _id: session.metadata?.orderId, userId: req.user.id, stripeSessionId: session.id });
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     if (session.payment_status !== 'paid' || session.amount_total !== Math.round(order.amount * 100)) return res.status(402).json({ success: false, message: 'Payment is not complete' });
-    order.payment = true;
-    order.status = 'Food Processing';
-    await order.save();
-    await userModel.findByIdAndUpdate(req.user.id, { cartData: {} });
+    if (!order.payment) {
+      const settledOrder = await orderModel.findOneAndUpdate(
+        { _id: order.id, userId: req.user.id, payment: false },
+        { $set: { payment: true, status: 'Food Processing' } },
+        { new: true },
+      );
+      if (settledOrder) await userModel.findByIdAndUpdate(req.user.id, { cartData: {} });
+    }
     res.json({ success: true, message: 'Paid' });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message || 'Unable to verify payment' });
   }
 };
+
+const stripeWebhook = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) return res.status(503).send('Webhook is not configured');
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, req.get('stripe-signature'), process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (error) {
+    return res.status(400).send(`Invalid webhook signature: ${error.message}`);
+  }
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      if (session.payment_status === 'paid' && session.metadata?.orderId) {
+        const order = await orderModel.findOneAndUpdate(
+          { _id: session.metadata.orderId, userId: session.metadata.userId, stripeSessionId: session.id, payment: false },
+          { $set: { payment: true, status: 'Food Processing' } },
+          { new: true },
+        );
+        if (order) await userModel.findByIdAndUpdate(order.userId, { cartData: {} });
+      }
+    }
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Stripe webhook processing failed:', error.message);
+    res.status(500).json({ success: false, message: 'Webhook processing failed' });
+  }
+};
+
 const userOrders = async (req, res) => {
   const orders = await orderModel.find({ userId: req.user.id }).sort({ date: -1 });
   res.json({ success: true, data: orders });
@@ -73,4 +99,4 @@ const updateStatus = async (req, res) => {
   if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
   res.json({ success: true, message: 'Status updated' });
 };
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus };
+export { placeOrder, verifyOrder, stripeWebhook, userOrders, listOrders, updateStatus };
